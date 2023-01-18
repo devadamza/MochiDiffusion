@@ -40,29 +40,37 @@ struct CheckForUpdatesView: View {
 
 @main
 struct MochiDiffusionApp: App {
-    @StateObject private var store = Store()
+    @StateObject private var imageStore = ImageStore(images: [])
+    @StateObject private var promptStore = PromptStore()
+    @State private var selectedImageId: SDImage.ID?
+    @State private var galleryConfig = GalleryConfig()
     private let updaterController: SPUStandardUpdaterController
 
     var body: some Scene {
         WindowGroup {
-            AppView()
-                .environmentObject(store)
+            AppView(selectedImageId: $selectedImageId, galleryConfig: $galleryConfig)
+                .environmentObject(imageStore)
+                .environmentObject(promptStore)
         }
         .commands {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
             CommandGroup(replacing: CommandGroupPlacement.newItem) { /* hide new window */ }
-            FileCommands(store: store)
+            FileCommands(selectedImageId: $selectedImageId, imageStore: imageStore)
             SidebarCommands()
-            ImageCommands(store: store)
+            ImageCommands(
+                promptStore: promptStore,
+                selectedImageId: $selectedImageId,
+                galleryConfig: $galleryConfig
+            )
             HelpCommands()
         }
         .defaultSize(width: 1_120, height: 670)
 
         Settings {
             SettingsView()
-                .environmentObject(store)
+                .environmentObject(promptStore)
         }
     }
 

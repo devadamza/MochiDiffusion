@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct GalleryToolbarView: View {
-    @EnvironmentObject var store: Store
+    @EnvironmentObject private var promptStore: PromptStore
     @State private var isStatusPopoverShown = false
 
     var body: some View {
-        if case .loading = store.mainViewStatus {
+        if case .running = promptStore.status {
             Button {
                 self.isStatusPopoverShown.toggle()
             } label: {
                 ProgressView()
                     .progressViewStyle(.circular)
-                    .scaleEffect(0.5)
+                    .controlSize(.small)
                     .frame(width: 16)
             }
             .popover(isPresented: self.$isStatusPopoverShown, arrowEdge: .bottom) {
@@ -34,10 +34,10 @@ struct GalleryToolbarView: View {
             }
         }
 
-        if case let .running(progress) = store.mainViewStatus, let progress = progress, progress.stepCount > 0 {
+        if case let .running(progress) = promptStore.status, let progress = progress, progress.stepCount > 0 {
             let step = Int(progress.step) + 1
             let stepValue = Double(step) / Double(progress.stepCount)
-            let progressValue = Double(store.generationProgress.index + 1) / Double(store.generationProgress.total)
+            let progressValue = Double(promptStore.queueProgress.index + 1) / Double(promptStore.queueProgress.total)
 
             Button {
                 self.isStatusPopoverShown.toggle()

@@ -26,7 +26,9 @@ struct SDImage: Identifiable {
     var guidanceScale = 11.0
     var generatedDate = Date()
     var isUpscaled = false
+}
 
+extension SDImage {
     func save() {
         guard let image = image else {
             NSLog("*** Image was not valid!")
@@ -41,7 +43,7 @@ struct SDImage: Identifiable {
         panel.message = "Choose a folder and a name to store the image"
         panel.nameFieldLabel = "Image file name:"
         panel.nameFieldStringValue =
-            "\(String(prompt.prefix(70)).trimmingCharacters(in: .whitespacesAndNewlines)).\(seed).png"
+        "\(String(prompt.prefix(70)).trimmingCharacters(in: .whitespacesAndNewlines)).\(seed).png"
         let resp = panel.runModal()
         if resp != .OK {
             return
@@ -53,7 +55,7 @@ struct SDImage: Identifiable {
         guard let destination = CGImageDestinationCreateWithData(
             data,
             (ext == "png" ?
-                UTType.png.identifier :
+             UTType.png.identifier :
                 UTType.jpeg.identifier) as CFString,
             1,
             nil

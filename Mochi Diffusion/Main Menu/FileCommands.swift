@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct FileCommands: Commands {
-    @ObservedObject var store: Store
+    @Binding var selectedImageId: SDImage.ID?
+    @ObservedObject var imageStore: ImageStore
 
     var body: some Commands {
         CommandGroup(replacing: .saveItem) {
             Section {
                 Button {
-                    guard let sdi = store.getSelectedImage else { return }
+                    guard let id = selectedImageId, let sdi = imageStore.image(with: id) else { return }
                     sdi.save()
                 } label: {
                     Text(
@@ -23,10 +24,10 @@ struct FileCommands: Commands {
                     )
                 }
                 .keyboardShortcut("S", modifiers: .command)
-                .disabled(store.getSelectedImage == nil)
+                .disabled(selectedImageId == nil)
 
                 Button {
-                    store.saveAllImages()
+                    imageStore.saveAllImages()
                 } label: {
                     Text(
                         "Save All...",
@@ -34,7 +35,7 @@ struct FileCommands: Commands {
                     )
                 }
                 .keyboardShortcut("S", modifiers: [.command, .option])
-                .disabled(store.images.isEmpty)
+                .disabled(imageStore.images.isEmpty)
             }
         }
     }

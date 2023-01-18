@@ -9,7 +9,9 @@ import CoreML
 import SwiftUI
 
 struct ModelView: View {
-    @EnvironmentObject var store: Store
+    @Binding var models: [String]
+    @Binding var currentModel: String
+    var loadModels: () -> Void
 
     var body: some View {
         Text(
@@ -17,23 +19,19 @@ struct ModelView: View {
             comment: "Label for Model picker"
         )
         HStack {
-            Picker("", selection: $store.currentModel) {
-                ForEach(store.models, id: \.self) { model in
+            Picker("", selection: $currentModel) {
+                ForEach(models, id: \.self) { model in
                     Text(model).tag(model)
                 }
             }
             .labelsHidden()
 
-            Button(action: store.loadModels) {
+            Button {
+                loadModels()
+            } label: {
                 Image(systemName: "arrow.clockwise")
                     .frame(minWidth: 18)
             }
         }
-    }
-}
-
-struct ModelView_Previews: PreviewProvider {
-    static var previews: some View {
-        ModelView()
     }
 }

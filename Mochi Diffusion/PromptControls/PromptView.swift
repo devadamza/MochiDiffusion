@@ -8,7 +8,13 @@
 import SwiftUI
 
 struct PromptView: View {
-    @EnvironmentObject var store: Store
+    @Binding var prompt: String
+    @Binding var negativePrompt: String
+    @Binding var upscaleGeneratedImages: Bool
+    var isGenerateDisabled: Bool
+    var status: GeneratorStatus
+    var generate: () -> Void
+    var stopGeneration: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -16,7 +22,7 @@ struct PromptView: View {
                 "Include in Image:",
                 comment: "Label for prompt text field"
             )
-            TextEditor(text: $store.prompt)
+            TextEditor(text: $prompt)
                 .font(.system(size: 14))
                 .frame(height: 85)
                 .border(Color(nsColor: .gridColor))
@@ -28,7 +34,7 @@ struct PromptView: View {
                 "Exclude from Image:",
                 comment: "Label for negative prompt text field"
             )
-            TextEditor(text: $store.negativePrompt)
+            TextEditor(text: $negativePrompt)
                 .font(.system(size: 14))
                 .frame(height: 52)
                 .border(Color(nsColor: .gridColor))
@@ -37,7 +43,7 @@ struct PromptView: View {
             Spacer().frame(height: 2)
 
             HStack(alignment: .center) {
-                Toggle(isOn: $store.upscaleGeneratedImages) {
+                Toggle(isOn: $upscaleGeneratedImages) {
                     Label {
                         Text(
                             "HD",
@@ -51,18 +57,24 @@ struct PromptView: View {
 
                 Spacer()
 
-                if case .running = store.mainViewStatus {
-                    Button(action: store.stopGeneration) {
+                if case .running = status {
+                    Button {
+                        stopGeneration()
+                    } label: {
                         Text("Stop Generation")
                     }
+                    .controlSize(.large)
                 } else {
-                    Button(action: store.generate) {
+                    Button {
+                        generate()
+                    } label: {
                         Text(
                             "Generate",
                             comment: "Button to generate image"
                         )
                     }
-                    .disabled($store.currentModel.wrappedValue.isEmpty)
+                    .disabled(isGenerateDisabled)
+                    .controlSize(.large)
                     .buttonStyle(.borderedProminent)
                 }
             }

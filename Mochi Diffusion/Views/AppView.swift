@@ -2,62 +2,48 @@
 //  AppView.swift
 //  Mochi Diffusion
 //
-//  Created by Joshua Park on 12/17/22.
+//  Created by Joshua Park on 1/17/23.
 //
 
 import SwiftUI
 
 struct AppView: View {
-    @EnvironmentObject var store: Store
+    @Binding var selectedImageId: SDImage.ID?
+    @Binding var galleryConfig: GalleryConfig
+    @EnvironmentObject private var imageStore: ImageStore
+    @EnvironmentObject private var promptStore: PromptStore
 
     var body: some View {
         NavigationSplitView {
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Group {
-                        PromptView()
-                        Divider().frame(height: 16)
-                    }
-                    Group {
-                        NumberOfImagesView()
-                        Spacer()
-                    }
-                    Group {
-                        StepsView()
-                        Spacer()
-                    }
-                    Group {
-                        GuidanceScaleView()
-                        Spacer()
-                    }
-                    Group {
-                        SeedView()
-                        Spacer()
-                    }
-                    Group {
-                        ModelView()
-                    }
-                }
-                .padding([.horizontal, .bottom])
-            }
-            .navigationSplitViewColumnWidth(min: 250, ideal: 300)
+            SidebarView(generate: generate)
+                .navigationSplitViewColumnWidth(min: 250, ideal: 300)
         } detail: {
             HStack(alignment: .center, spacing: 0) {
-                GalleryView()
+                GalleryView(selection: $selectedImageId, copyToPrompt: copyToPrompt)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 Divider()
 
-                InspectorView()
+                if let index = selectedImageId, let sdi = imageStore.image(with: index) {
+                    InspectorView(
+                        sdi: sdi,
+                        copyToPrompt: <#T##(SDImage) -> Void#>
+                    )
                     .frame(maxWidth: 340)
+                } else {
+                    EmptyInspectorView()
+                        .frame(maxWidth: 340)
+                }
             }
         }
-        .searchable(text: $store.searchText, prompt: "Search")
+        .searchable(text: $galleryConfig.searchText, prompt: "Search")
     }
-}
 
-struct AppView_Previews: PreviewProvider {
-    static var previews: some View {
-        AppView().previewLayout(.sizeThatFits)
+    func generate() {
+        promptStore.generate(imageStore: imageStore)
+    }
+
+    func copyToPrompt(_ sdi: SDImage) {
+
     }
 }

@@ -8,27 +8,38 @@
 import SwiftUI
 
 struct ImageCommands: Commands {
-    @ObservedObject var store: Store
+    @ObservedObject var promptStore: PromptStore
+    @Binding var selectedImageId: SDImage.ID?
+    @Binding var isImagesEmpty: Bool
+    @Binding var galleryConfig: GalleryConfig
 
     var body: some Commands {
         CommandMenu("Image") {
             Section {
-                if case .running = store.mainViewStatus {
-                    Button(action: store.stopGeneration) {
+                if case .running = promptStore.status {
+                    Button {
+                        Generator.shared.stopGeneration()
+                    } label: {
                         Text("Stop Generation")
                     }
                     .keyboardShortcut("G", modifiers: .command)
                 } else {
-                    Button(action: store.generate) {
+                    Button {
+                        promptStore.generate(imageStore: imageStore)
+                    } label: {
                         Text("Generate")
                     }
                     .keyboardShortcut("G", modifiers: .command)
-                    .disabled(store.currentModel.isEmpty)
+                    .disabled(promptStore.currentModel.isEmpty)
                 }
             }
             Section {
                 Button {
-                    store.selectNextImage()
+                    guard let id = selectedImageId else { return }
+                    selectedImageId = galleryConfig.selectNextImage(
+                        id: id,
+                        imageStore: imageStore
+                    )
                 } label: {
                     Text(
                         "Select Next",
@@ -36,10 +47,14 @@ struct ImageCommands: Commands {
                     )
                 }
                 .keyboardShortcut(.rightArrow, modifiers: .command)
-                .disabled(store.images.isEmpty)
+                .disabled(imageStore.images.isEmpty)
 
                 Button {
-                    store.selectPreviousImage()
+                    guard let id = selectedImageId else { return }
+                    selectedImageId = galleryConfig.selectPreviousImage(
+                        id: id,
+                        imageStore: imageStore
+                    )
                 } label: {
                     Text(
                         "Select Previous",
@@ -47,11 +62,14 @@ struct ImageCommands: Commands {
                     )
                 }
                 .keyboardShortcut(.leftArrow, modifiers: .command)
-                .disabled(store.images.isEmpty)
+                .disabled(imageStore.images.isEmpty)
             }
             Section {
                 Button {
-                    store.upscaleCurrentImage()
+                    guard let id = selectedImageId else { return }
+                    guard let sdi = imageStore.image(with: id) else { return }
+                    guard let upscaledImage = Upscaler.shared.upscaleImage(sdi: sdi) else { return }
+                    selectedImageId = imageStore.add(upscaledImage)
                 } label: {
                     Text(
                         "Convert to High Resolution",
@@ -59,10 +77,12 @@ struct ImageCommands: Commands {
                     )
                 }
                 .keyboardShortcut("R", modifiers: .command)
-                .disabled(store.getSelectedImage == nil)
+                .disabled(selectedImageId == nil)
 
                 Button {
-                    store.quicklookCurrentImage()
+                    guard let id = selectedImageId else { return }
+                    guard let sdi = imageStore.image(with: id) else { return }
+                    galleryConfig.quicklookImage(sdi)
                 } label: {
                     Text(
                         "Quick Look",
@@ -70,11 +90,12 @@ struct ImageCommands: Commands {
                     )
                 }
                 .keyboardShortcut("L", modifiers: .command)
-                .disabled(store.getSelectedImage == nil)
+                .disabled(selectedImageId == nil)
             }
             Section {
                 Button {
-                    store.removeCurrentImage()
+                    guard let id = selectedImageId else { return }
+                    imageStore.remove(id)
                 } label: {
                     Text(
                         "Remove",
@@ -82,7 +103,7 @@ struct ImageCommands: Commands {
                     )
                 }
                 .keyboardShortcut(.delete, modifiers: .command)
-                .disabled(store.getSelectedImage == nil)
+                .disabled(selectedImageId == nil)
             }
         }
     }

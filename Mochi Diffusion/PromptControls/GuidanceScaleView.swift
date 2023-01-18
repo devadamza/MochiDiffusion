@@ -9,31 +9,32 @@ import Sliders
 import SwiftUI
 
 struct GuidanceScaleView: View {
-    @EnvironmentObject var store: Store
+    @Binding var guidanceScale: Double
+    private let controlHeight: CGFloat = 12
 
     var body: some View {
         Text(
-            "Guidance Scale: \(store.guidanceScale.formatted(.number.precision(.fractionLength(1))))",
+            "Guidance Scale: \(guidanceScale.formatted(.number.precision(.fractionLength(1))))",
             comment: "Label for Guidance Scale slider with value"
         )
-        ValueSlider(value: $store.guidanceScale, in: 1 ... 20, step: 0.5)
+        ValueSlider(value: $guidanceScale, in: 1 ... 20, step: 0.5)
             .valueSliderStyle(
                 HorizontalValueSliderStyle(
                     track:
                         HorizontalTrack(view: Color.accentColor)
-                            .frame(height: 12)
-                            .background(Color.black.opacity(0.2))
-                            .cornerRadius(6),
-                    thumbSize: CGSize(width: 12, height: 12),
+                        .frame(height: controlHeight)
+                        .background(Color.black.opacity(0.2))
+                        .cornerRadius((controlHeight / 2).rounded(.down)),
+                    thumbSize: CGSize(width: controlHeight, height: controlHeight),
                     options: .interactiveTrack
                 )
             )
-            .frame(height: 12)
+            .frame(height: controlHeight)
     }
 }
 
 struct GuidanceScaleView_Previews: PreviewProvider {
     static var previews: some View {
-        GuidanceScaleView()
+        GuidanceScaleView(guidanceScale: .constant(11))
     }
 }

@@ -9,31 +9,32 @@ import Sliders
 import SwiftUI
 
 struct StepsView: View {
-    @EnvironmentObject var store: Store
+    @Binding var steps: Int
+    private let controlHeight: CGFloat = 12
 
     var body: some View {
         Text(
-            "Steps: \(store.steps)",
+            "Steps: \(steps)",
             comment: "Label for Steps slider with value"
         )
-        ValueSlider(value: $store.steps, in: 2 ... 100, step: 1)
+        ValueSlider(value: $steps, in: 2 ... 100, step: 1)
             .valueSliderStyle(
                 HorizontalValueSliderStyle(
                     track:
                         HorizontalTrack(view: Color.accentColor)
-                        .frame(height: 12)
+                        .frame(height: controlHeight)
                         .background(Color.black.opacity(0.2))
-                        .cornerRadius(6),
-                    thumbSize: CGSize(width: 12, height: 12),
+                        .cornerRadius((controlHeight / 2).rounded(.down)),
+                    thumbSize: CGSize(width: controlHeight, height: controlHeight),
                     options: .interactiveTrack
                 )
             )
-            .frame(height: 12)
+            .frame(height: controlHeight)
     }
 }
 
 struct StepsView_Previews: PreviewProvider {
     static var previews: some View {
-        StepsView()
+        StepsView(steps: .constant(20))
     }
 }

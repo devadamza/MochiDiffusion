@@ -10,7 +10,7 @@ import StableDiffusion
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject var store: Store
+    @EnvironmentObject var promptStore: PromptStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -20,7 +20,7 @@ struct SettingsView: View {
 
                     Spacer()
 
-                    Picker("", selection: $store.scheduler) {
+                    Picker("", selection: $promptStore.scheduler) {
                         ForEach(StableDiffusionScheduler.allCases, id: \.self) { scheduler in
                             Text(scheduler.rawValue).tag(scheduler)
                         }
@@ -39,7 +39,7 @@ struct SettingsView: View {
 
                         Spacer()
 
-                        Picker("", selection: $store.mlComputeUnit) {
+                        Picker("", selection: $promptStore.mlComputeUnit) {
                             Text("CPU & Neural Engine")
                                 .tag(MLComputeUnits.cpuAndNeuralEngine)
                             Text("CPU & GPU")
@@ -76,7 +76,7 @@ struct SettingsView: View {
 
                         Spacer()
 
-                        Toggle("", isOn: $store.reduceMemory)
+                        Toggle("", isOn: $promptStore.reduceMemory)
                             .labelsHidden()
                             .toggleStyle(.switch)
                     }
@@ -97,13 +97,13 @@ struct SettingsView: View {
                     )
 
                     HStack {
-                        TextField("", text: $store.workingDir)
+                        TextField("", text: $promptStore.modelDir)
                             .disableAutocorrection(true)
                             .textFieldStyle(.roundedBorder)
 
                         Button {
                             // swiftlint:disable:next line_length
-                            NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: store.workingDir).absoluteURL])
+                            NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: promptStore.modelDir).absoluteURL])
                         } label: {
                             Image(systemName: "magnifyingglass.circle.fill")
                                 .foregroundColor(Color.secondary)
@@ -119,7 +119,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button {
-                    store.loadModels()
+                    promptStore.loadModels()
                     NSApplication.shared.keyWindow?.close()
                 } label: {
                     Text(

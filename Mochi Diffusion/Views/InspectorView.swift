@@ -9,11 +9,22 @@
 import StableDiffusion
 import SwiftUI
 
+// TODO: move out
+enum PromptOption {
+    case prompt(String)
+    case negativePrompt(String)
+    case scheduler(StableDiffusionScheduler)
+    case seed(UInt32)
+    case steps(Int)
+    case guidanceScale(Double)
+    case all(SDImage)
+}
+
 struct InfoGridRow: View {
     var type: LocalizedStringKey
     var text: String
     var showCopyToPromptOption: Bool
-    var callback: (() -> Void)?
+    var callback: ((PromptOption) -> Void)?
 
     var body: some View {
         GridRow {
@@ -23,15 +34,16 @@ struct InfoGridRow: View {
         }
         GridRow {
             if showCopyToPromptOption {
-                Button {
-                    guard let callbackFn = callback else { return }
-                    callbackFn()
-                } label: {
-                    Image(systemName: "arrow.left.circle.fill")
-                        .foregroundColor(Color.secondary)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .help("Copy Option to Sidebar")
+//                Button {
+//                    guard let callbackFn = callback else { return }
+//                    callbackFn()
+//                } label: {
+//                    Image(systemName: "arrow.left.circle.fill")
+//                        .foregroundColor(Color.secondary)
+//                }
+//                .buttonStyle(PlainButtonStyle())
+//                .help("Copy Option to Sidebar")
+                Text("")
             } else {
                 Text("")
             }
@@ -44,16 +56,18 @@ struct InfoGridRow: View {
 }
 
 struct InspectorView: View {
-    @EnvironmentObject var store: Store
+//    @Binding var config: InspectorConfig
+    var sdi: SDImage
+    var copyToPrompt: (PromptOption) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
-            if let sdi = store.getSelectedImage, let img = sdi.image {
+            if let img = sdi.image {
                 Image(img, scale: 1, label: Text(verbatim: String(sdi.prompt)))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(4)
-                    .shadow(color: sdi.image?.averageColor ?? .black, radius: 16)
+                    .shadow(color: sdi.image?.averageColor ?? .black, radius: 12)
                     .padding()
 
                 ScrollView(.vertical) {
@@ -77,44 +91,46 @@ struct InspectorView: View {
                             type: "Include in Image",
                             text: sdi.prompt,
                             showCopyToPromptOption: true,
-                            callback: store.copyPromptToPrompt
+//                            callback: copyToPrompt(.prompt(sdi.prompt))
                         )
                         InfoGridRow(
                             type: "Exclude from Image",
                             text: sdi.negativePrompt,
                             showCopyToPromptOption: true,
-                            callback: store.copyNegativePromptToPrompt
+//                            callback: copyToPrompt(.negativePrompt(sdi.negativePrompt))
                         )
                         InfoGridRow(
                             type: "Scheduler",
                             text: sdi.scheduler.rawValue,
                             showCopyToPromptOption: true,
-                            callback: store.copySchedulerToPrompt
+//                            callback: copyToPrompt(.scheduler(sdi.scheduler))
                         )
                         InfoGridRow(
                             type: "Seed",
                             text: String(sdi.seed),
                             showCopyToPromptOption: true,
-                            callback: store.copySeedToPrompt
+//                            callback: copyToPrompt(.seed(sdi.seed))
                         )
                         InfoGridRow(
                             type: "Steps",
                             text: String(sdi.steps),
                             showCopyToPromptOption: true,
-                            callback: store.copyStepsToPrompt
+//                            callback: copyToPrompt(.steps(sdi.steps))
                         )
                         InfoGridRow(
                             type: "Guidance Scale",
                             text: String(sdi.guidanceScale),
                             showCopyToPromptOption: true,
-                            callback: store.copyGuidanceScaleToPrompt
+//                            callback: copyToPrompt(.guidanceScale(sdi.guidanceScale))
                         )
                     }
                 }
                 .padding([.horizontal])
 
                 HStack(alignment: .center) {
-                    Button(action: store.copyToPrompt) {
+                    Button {
+                        copyToPrompt(.all(sdi))
+                    } label: {
                         Text(
                             "Copy Options to Sidebar",
                             comment: "Button to copy the currently selected image's generation options to the prompt input sidebar"
@@ -133,20 +149,7 @@ struct InspectorView: View {
                     }
                 }
                 .padding()
-            } else {
-                Text(
-                    "No Info",
-                    comment: "Placeholder text for image inspector"
-                )
-                .font(.title2)
-                .foregroundColor(.secondary)
             }
         }
-    }
-}
-
-struct InspectorView_Previews: PreviewProvider {
-    static var previews: some View {
-        InspectorView()
     }
 }
